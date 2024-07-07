@@ -18,7 +18,9 @@ bonf_SI_m2 <- Result_SI_m2[Result_SI_m2$pval<0.05/(nrow(Result_SI_m2)+nrow(Resul
 bonf_LO_m2 <- Result_LO_m2[Result_LO_m2$pval<0.05/(nrow(Result_SI_m2)+nrow(Result_LO_m2)),]#43
 
 prot_use <- unique(c(bonf_SI_m2$V1,bonf_LO_m2$V1))#183
-data_prot_use <- data_prot[,c('ID',prot_use,'SI_2c','LO_2c','age','sex','site','ethnicity','edu_4c','smokeNow','inc_2c','alc_2c','bmi_3c')]
+data_prot_use <- data_prot[,c('ID',prot_used,'age','sex','timeGap',
+                               'eth2','edu_4c','smokeNow','alc_2c','bmi','inc_2c',
+                               paste0('PC',1:20)]
 
 #Health outcome data from UKB first-occurence
 phenoData <- fread('COXphenoData_raw.csv')
@@ -67,8 +69,10 @@ Result_CVD_M2 <- foreach(i=1:length(prot_use), .combine='rbind') %dopar% {
   dat_full <- na.omit(subset(Data_merge3,select=c('ID',prot_use[i],'outcome','fultime',
                                                   'age','sex','ethnicity','edu_4c','smokeNow','alc_2c','bmi_3c','inc_2c')))
   dat_full$exposure <- RankNorm(dat_full[,2])
-  
-  M2 <- coxph(Surv(fultime,outcome)~exposure+age+sex+ethnicity+edu_4c+smokeNow+inc_2c+alc_2c+bmi_3c,dat_full)
+
+  f <- paste0('Surv(fultime,outcome)~exposure+age+sex+timeGap+eth2+edu_4c+smokeNow+alc_2c+bmi+inc_2c+',
+              paste0("PC", 1:20, collapse = "+"))
+  M2 <- coxph(as.formula(f),dat_full)
   s_M2 <- summary(M2)
   c_M2 <- cox.zph(M2)
   
