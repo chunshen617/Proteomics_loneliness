@@ -7,7 +7,9 @@ data_prot <- fread('olink_ins0_cov.csv',data.table = F) #plasma protein data wit
 mr_toProt <- fread('Result_MR_toProt_ME.csv')
 fdrsig_mr_ivw <- mr_toProt[mr_toProt$pfdr_com<0.05,] #9 protein and protein modules
 prot_use <- fdrsig_mr_ivw$outcome[-9]
-data_prot_used <- data_prot[,c('ID',prot_used,'sex','age','Batch','ethnicity','edu_4c','smokeNow','alc_2c','bmi_3c','inc_2c','timeGap')]
+data_prot_used <- data_prot[,'ID',prot_used,'Batch','age','sex','site','timeGap',
+                               'eth2','edu_4c','smokeNow','alc_2c','bmi','inc_2c',
+                               paste0('PC',1:20)]
 
 #Brain volume data
 aparc_vol <- fread('UKB_2_0_aparc_GrayVol.csv',data.table = F)
@@ -25,10 +27,12 @@ for (i in 1:length(prot_used)){
   colnames(result) <- c('t_M1','p_M1','n')
   
   for (ii in 1:length(aparcName)){
-    dat <- na.omit(subset(aparc_vol_merge,select = c('eid',prot_used[i],aparcName[ii],'sex','age','age_dif','site2','Batch','ICV','ethnicity','edu_4c','inc_2c','smokeNow','alc_2c','bmi_3c','timeGap')))
+    dat <- na.omit(subset(aparc_vol_merge,select = c('eid',prot_used[i],aparcName[ii],'sex','age','site2','ICV,'Batch','eth2','edu_4c','inc_2c','smokeNow','alc_2c','bmi','timeGap',
+                                             paste0('PC',1:20))))
     dat[,prot_used[i]] <- RankNorm(dat[,prot_used[i]])
     
-    fit <- lm(as.formula(paste0(aparcName[ii],'~',prot_used[i],'+sex+age+age_dif+site2+Batch+ICV+ethnicity+edu_4c+inc_2c+smokeNow+alc_2c+bmi_3c+timeGap')),
+    fit <- lm(as.formula(paste0(aparcName[ii],'~',prot_used[i],'+sex+age+site2+ICV+Batch+eth2+edu_4c+inc_2c+smokeNow+alc_2c+bmi+timeGap+',
+                                paste0("PC", 1:20, collapse = "+"))),
               data=dat)
     sum <- summary(fit)
     
