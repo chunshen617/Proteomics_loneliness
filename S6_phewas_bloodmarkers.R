@@ -21,7 +21,9 @@ mr_toProt <- fread('Result_MR_toProt_ME.csv')
 fdrsig_mr_ivw <- mr_toProt[mr_toProt$pfdr_com<0.05,] #9 protein and protein modules
 prot_use <- fdrsig_mr_ivw$outcome
 #extract protein data
-data_prot_use <- data_prot[,c('ID',prot_use,'sex','age','site','Batch','ethnicity','edu_4c','smokeNow','alc_2c','bmi_3c','inc_2c')]
+data_prot_use <- data_prot[,c('ID',prot_used,'Batch','age','sex','site','timeGap',
+                               'eth2','edu_4c','smokeNow','alc_2c','bmi','inc_2c',
+                               paste0('PC',1:20))]
 
 #load blood biomarkers data
 dat_bld <- fread('blood_processed.csv')
@@ -39,10 +41,12 @@ for (i in 1:length(prot_use)){#####
   rownames(rr) <- var_bld
   
   for (ii in 1:length(var_bld)){
-    dat <- na.omit(subset(dat_prot_bld,select = c('ID',prot_use[i],var_bld[ii],'sex','age','site','Batch','ethnicity','edu_4c','inc_2c','smokeNow','alc_2c','bmi_3c','timeGap')))
+    dat <- na.omit(subset(dat_prot_bld,select = c('ID',prot_use[i],var_bld[ii],'sex','age','site','Batch','eth2','edu_4c','inc_2c','smokeNow','alc_2c','bmi','timeGap',
+                                             paste0('PC',1:20))))
     dat[,prot_use[i]] <- RankNorm(dat[,prot_use[i]])
     
-    fit <- lm(as.formula(paste0(var_bld[ii],'~',prot_use[i],'+sex+age+site+Batch+ethnicity+edu_4c+inc_2c+smokeNow+alc_2c+bmi_3c+timeGap')),
+    fit <- lm(as.formula(paste0(var_bld[ii],'~',prot_use[i],'+sex+age+site+Batch+eth2+edu_4c+inc_2c+smokeNow+alc_2c+bmi+timeGap+',
+                                paste0("PC", 1:20, collapse = "+"))),
               data=dat)
     sum <- summary(fit)
     
