@@ -3,8 +3,7 @@ library('data.table')
 library('lubridate')                                        
 library('RNOmni')
 library('survival')
-library('foreach')
-library('doParallel')
+library('parallel')
 
 ##Load data
 data_prot <- fread('protein_UKB.csv',data.table = F) 
@@ -63,29 +62,47 @@ Data_merge3$fultime <- timedif(Data_merge3$CVD1Date,Data_merge3$AttendDate,Data_
 
 #######Association between protein and disease
 #Perform cox model
-registerDoParallel(10)
-
-Result_CVD_M2 <- foreach(i=1:length(prot_use), .combine='rbind') %dopar% {
-  dat_full <- na.omit(subset(Data_merge3,select=c('ID',prot_use[i],'outcome','fultime',
-                                                  'age','sex','ethnicity','edu_4c','smokeNow','alc_2c','bmi_3c','inc_2c')))
-  dat_full$exposure <- RankNorm(dat_full[,2])
-
-  f <- paste0('Surv(fultime,outcome)~exposure+age+sex+timeGap+eth2+edu_4c+smokeNow+alc_2c+bmi+inc_2c+',
+model2surv <- function(data,protName){
+  data[,protName] <- RankNorm(data[,protName])
+  f <- paste0('Surv(fultime,outcome)~',protName,'+age+sex+timeGap+eth2+edu_4c+smokeNow+alc_2c+bmi+inc_2c+',
               paste0("PC", 1:20, collapse = "+"))
-  M2 <- coxph(as.formula(f),dat_full)
+  M2 <- coxph(as.formula(f),data)
   s_M2 <- summary(M2)
   c_M2 <- cox.zph(M2)
   
-  result <- data.frame(protname=prot_use[i],
+  result <- data.frame(protN=protName,
                        n=s_M2[["n"]],
                        nevent=s_M2[["nevent"]],
                        OR=s_M2[["coefficients"]][1,2],
                        lower=s_M2[["conf.int"]][1,3],
                        upper=s_M2[["conf.int"]][1,4],
                        pval=s_M2[["coefficients"]][1,5],
-                       zph=c_M2[["table"]][10,3])
-  result
+                       zph=c_M2[["table"]]['GLOBAL',3])
+  return(result)
 }
 
-rownames(Result_CVD_M2) <- prot_use
-write.csv(Result_CVD_M2,file='Result_prot_CVD_cox_M2.csv')
+Result_CVD_M2 <- mclapply(1:length(prot_use), function(i) {
+  dat <- subset(Data_merge3,select=c('ID',prot_use[i],'outcome','fultime',
+                                                  'SI_2c','LO_2c','Batch','age','sex','site',
+                                                  'eth2','edu_4c','smokeNow','alc_2c','bmi','inc_2c',
+                                                  paste0('PC',1:20)))
+  dat_t <- subset(timeGap,select = c('ID',prot_use[i]))
+  colnames(dat_t)[2] <- 'timeGap'
+  dat2 <- merge(dat,dat_t,by='ID')
+  dat2 <- na.omit(dat2)
+  
+  dat2$sex <- as.factor(dat2$sex)
+  dat2$site <- as.factor(dat2$site)
+  dat2$Batch <- as.factor(dat2$Batch)
+  dat2$eth2 <- as.factor(dat2$eth2)
+  dat2$edu_4c <- as.factor(dat2$edu_4c)
+  dat2$inc_2c <- as.factor(dat2$inc_2c)
+  dat2$smokeNow <- as.factor(dat2$smokeNow)
+  dat2$alc_2c <- as.factor(dat2$alc_2c)
+  
+  model2surv(dat2,prot_use[i])
+}, mc.cores = 10)
+
+Result_CVD_M2 <- do.call(rbind,Result_CVD_M2)
+write.csv(Result_CVD_M2, file = 'Result_prot_CVD_cox_M2.csv')
+                             
