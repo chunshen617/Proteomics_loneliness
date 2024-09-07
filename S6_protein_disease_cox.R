@@ -7,7 +7,7 @@ library('foreach')
 library('doParallel')
 
 ##Load data
-data_prot <- fread('olink_ins0_cov.csv',data.table = F) #plasma protein data with covariates
+data_prot <- fread('protein_UKB.csv',data.table = F) 
 protName <- colnames(data_prot)[2:2921]
 
 ##Model 2 result
@@ -55,7 +55,7 @@ CVD_selfD <- unique(c(grep('1066',Data_merge$SelfReport),grep('1075',Data_merge$
                       grep('1076',Data_merge$SelfReport),grep('1077',Data_merge$SelfReport),
                       grep('1078',Data_merge$SelfReport),grep('1485',Data_merge$SelfReport)))
 Data_merge2 <- Data_merge[-CVD_selfD,]
-#prevalent cases
+#excluding prevalent cases
 Data_merge3 <- Data_merge2[-which(time_length(difftime(Data_merge2$CVD1Date,Data_merge2$AttendDate),'years')<3),]
 #outcome
 Data_merge3$outcome <- ifelse(is.na(Data_merge3$CVD1Date)==FALSE,1,0)
@@ -63,7 +63,7 @@ Data_merge3$fultime <- timedif(Data_merge3$CVD1Date,Data_merge3$AttendDate,Data_
 
 #######Association between protein and disease
 #Perform cox model
-registerDoParallel(20)
+registerDoParallel(10)
 
 Result_CVD_M2 <- foreach(i=1:length(prot_use), .combine='rbind') %dopar% {
   dat_full <- na.omit(subset(Data_merge3,select=c('ID',prot_use[i],'outcome','fultime',
@@ -76,7 +76,8 @@ Result_CVD_M2 <- foreach(i=1:length(prot_use), .combine='rbind') %dopar% {
   s_M2 <- summary(M2)
   c_M2 <- cox.zph(M2)
   
-  result <- data.frame(n=s_M2[["n"]],
+  result <- data.frame(protname=prot_use[i],
+                       n=s_M2[["n"]],
                        nevent=s_M2[["nevent"]],
                        OR=s_M2[["coefficients"]][1,2],
                        lower=s_M2[["conf.int"]][1,3],
