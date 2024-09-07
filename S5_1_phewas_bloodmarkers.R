@@ -15,7 +15,7 @@ write.csv(processed.nmr,file='nmr_processed.csv',row.names = F)
 #############
 #Association to blood biomarkers 
 #load protein data
-data_prot <- fread('olink_ins0_cov.csv',data.table = F)
+data_prot <- fread('protein_UKB.csv',data.table = F)
 #MR significant proteins
 mr_toProt <- fread('Result_MR_toProt_ME.csv')
 fdrsig_mr_ivw <- mr_toProt[mr_toProt$pfdr_com<0.05,] #9 protein and protein modules
