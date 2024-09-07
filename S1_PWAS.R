@@ -8,7 +8,7 @@ library(RNOmni)
 
 ###Load data
 # time gap: N participants * M proteins
-timeGap <- fread('/home1/shenchun/Projects/SI_protein/Analysis_update_release2/S1_protein_data_processing/olink_timeGap.csv')
+timeGap <- fread('olink_timeGap.csv')
 colnames(timeGap)[1] <- 'ID'
 #protein data and other covariates
 data_prot <- fread('protein_UKB.csv',data.table = F)
