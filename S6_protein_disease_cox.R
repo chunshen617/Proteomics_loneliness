@@ -1,4 +1,4 @@
-#Prospective association between protein and diseases and mortality, using CVD as an example
+#Prospective association between proteins and diseases and mortality, using CVD as an example
 library('data.table')
 library('lubridate')                                        
 library('RNOmni')
