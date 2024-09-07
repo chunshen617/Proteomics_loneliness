@@ -8,7 +8,12 @@ These codes were used in the paper "Shen et al. Plasma proteomic signatures of s
    (3) four groups comparison: S1_3_PWAS_4group.R
    (4) cross-validation: S1_4_cross_validation.R
 3. Script for conducting protein-coexpression network: S2_protein_network.R
-4.  
+4. Script for functional enrichment analysis: S3_enrichment.R
+5. Script for two-sample MR: S4_2sampleMR.R
+6. Script for senticitivity analyses of MR:
+   (1) GSMR analysis:
+   (2) CAUSE analysis:
+   (3) colocalization analysis: 
    
    
    
