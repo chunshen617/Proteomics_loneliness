@@ -1,4 +1,7 @@
-#colocalization analysis of loneliness and proteins
+# colocalization analysis
+# Chun Shen, 2024
+
+# Load R packages
 library(coloc)
 library(data.table)
 library(ieugwasr)
@@ -19,17 +22,17 @@ LO_sigsnp <- ld_clump_local(data.frame(rsid = LO_GWAS_sig$SNP,pval = LO_GWAS_sig
                                clump_kb=10000,
                                clump_r2=0.001,
                                clump_p = 1,
-                               bfile = '/home1/shenchun/DATA/Genome1000_EUR/EUR',
-                               plink_bin = '/home1/shenchun/software/plink_1.9/plink')
+                               bfile = '/Genome1000_EUR/EUR',
+                               plink_bin = '/software/plink_1.9/plink')
 LO_sigsnp_clump <- LO_GWAS_sig[LO_GWAS_sig$SNP %in% LO_sigsnp$rsid,]
 
 LO_sigsnp_clump$start <- LO_sigsnp_clump$POS-GWAS_WINDOW
 LO_sigsnp_clump$end <- LO_sigsnp_clump$POS+GWAS_WINDOW
 
 #Proteins
-#LO to proteins
-LO_prot_ivw <- fread('Result_MR_toProt.csv')
-protName <- LO_prot_ivw$outcome[LO_prot_ivw$pfdr<0.05]
+#significant proteins in IVW
+sig_toprot <- fread('Result_IVW_sig_toProt.csv')
+protName <- sig_toprot$outcome
 
 LO_coloc_result <- vector(mode='list', length=length(protName))
 names(LO_coloc_result) <- protName
@@ -45,8 +48,8 @@ for (jj in 1:length(protName)){
                               clump_kb=10000,
                               clump_r2=0.001,
                               clump_p = 1,
-                              bfile = '/home1/shenchun/DATA/Genome1000_EUR/EUR',
-                              plink_bin = '/home1/shenchun/software/plink_1.9/plink')
+                              bfile = '/Genome1000_EUR/EUR',
+                              plink_bin = '/software/plink_1.9/plink')
   prot_sigsnp_clump <- prot_sig[prot_sig$SNP %in% prot_sigsnp$rsid,]
   prot_sigsnp_clump$start <- prot_sigsnp_clump$POS-GWAS_WINDOW
   prot_sigsnp_clump$end <- prot_sigsnp_clump$POS+GWAS_WINDOW
