@@ -17,5 +17,7 @@ These codes were used in the paper "Shen et al. Plasma proteomic signatures of s
 7. Script for proteins relating to other blood biomarkers: S5_1_phewas_bloodmarkers.R 
 8. Script for proteins relating to brain volumes: S5_2_phewas_brainvol.R
 9. Script for proteins relating to diseases: S6_protein_disease_cox.R
+10. Script for cox-based mediation analysis: S7_1_mediation_PERM.R
+11. Script for couterfactual-based mediation analysis: S7_2_mediation_counterfactual.R
    
    
