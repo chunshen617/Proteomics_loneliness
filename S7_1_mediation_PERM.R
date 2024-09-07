@@ -1,4 +1,7 @@
-#Mediation analysis caculated by PERM, using CVD as an example
+# Cox-based mediation analysis, using CVD as an example
+# Chun Shen, 2024
+
+# Load R packages
 library('data.table')
 library('lubridate')                                        
 library('RNOmni')
@@ -6,16 +9,19 @@ library('survival')
 library('foreach')
 library('doParallel')
 
-##Load data
-data_prot <- fread('olink_ins0_cov.csv',data.table = F) #plasma protein data with covariates
+###Load data
+#protein data and other covariates
+data_prot <- fread('protein_UKB.csv',data.table = F)
 protName <- colnames(data_prot)[2:2921]
+protName2 <- chartr('-','_',protName)
+colnames(data_prot)[2:2921] <- protName2
 
-#MR significant proteins
-mr_toProt <- fread('Result_MR_toProt_ME.csv')
-fdrsig_mr_ivw <- mr_toProt[mr_toProt$pfdr_com<0.05,] #9 protein and protein modules
-prot_use <- fdrsig_mr_ivw$outcome
-#extract protein data
-data_prot_use <- data_prot[,c('ID',prot_use,'SI_2c','LO_2c','age','sex','site','ethnicity','edu_4c','smokeNow','inc_2c','alc_2c','bmi_3c')]
+# MR sig proteins
+sig_toprot <- fread('Result_IVW_sig_toProt.csv')
+prot_used <- sig_toprot$outcome
+
+data_prot_use <- data_prot[,c('ID',prot_used,'SI_2c','LO_2c','sex','eth2','age','site',
+                              'edu_4c','smokeNow','alc_2c','bmi','inc_2c')]
 
 #Health outcome data from UKB first-occurence
 phenoData <- fread('COXphenoData_raw.csv')
@@ -56,29 +62,45 @@ Data_merge3 <- Data_merge2[-which(time_length(difftime(Data_merge2$CVD1Date,Data
 Data_merge3$outcome <- ifelse(is.na(Data_merge3$CVD1Date)==FALSE,1,0)
 Data_merge3$fultime <- timedif(Data_merge3$CVD1Date,Data_merge3$AttendDate,Data_merge3$DeathDate,'2022-11-30')
 
-#######Association between protein and disease
-#Perform cox model
-registerDoParallel(20)
+##############
+registerDoParallel(10)
 
-Result_CVD_med1 <- foreach(i=1:length(prot_use), .combine='rbind') %dopar% {
+Result_CVD_cmed2 <- foreach(i=1:length(prot_used), .combine='rbind') %dopar% {
+  # Covariate
+  mydata <- na.omit(subset(Data_merge3,select=c('ID',prot_used[i],'outcome','fultime','LO_2c','age','sex','site',
+                                           'eth2','edu_4c','smokeNow','alc_2c','bmi','inc_2c')))
+  mydata$mediator <- RankNorm(mydata[,2])
+
+  # category
+  mydata$LO_2c <- as.factor(mydata$LO_2c)
+  mydata$sex <- as.factor(mydata$sex)
+  mydata$eth2 <- as.factor(mydata$eth2)
+  mydata$edu_4c <- as.factor(mydata$edu_4c)
+  mydata$inc_2c <- as.factor(mydata$inc_2c)
+  mydata$smokeNow <- as.factor(mydata$smokeNow)
+  mydata$alc_2c <- as.factor(mydata$alc_2c)
+  mydata$site <- as.factor(mydata$site)
   
-  #simple model: adjust for age, sex
-  dat_simple <- na.omit(subset(Data_merge3,select=c(prot_use[i],'outcome','fultime','LO_2c','age','sex')))
-  dat_simple$exposure <- RankNorm(dat_simple[,1])
+  ##############
+  f1 <- 'Surv(fultime,outcome)~LO_2c+age+sex+eth2+edu_4c+smokeNow+inc_2c+alc_2c+bmi+site'
+  f2 <- 'Surv(fultime,outcome)~LO_2c+mediator+age+sex+eth2+edu_4c+smokeNow+inc_2c+alc_2c+bmi+site'
+
+  M1 <- coxph(as.formula(f1),mydata)
+  M2 <- coxph(as.formula(f2),mydata)
+
+  s_M1 <- summary(M1)
+  s_M2 <- summary(M2)
   
-  M11 <- coxph(Surv(fultime,outcome)~LO_2c+age+sex,dat_simple)
-  M12 <- coxph(Surv(fultime,outcome)~LO_2c+exposure+age+sex,dat_simple)
-  
-  s_M11 <- summary(M11)
-  s_M12 <- summary(M12)
-  
-  result <- data.frame(OR1=s_M11[["coefficients"]][1,2],
-                       OR2=s_M12[["coefficients"]][1,2],
-                       pval1=s_M11[["coefficients"]][1,5],
-                       pval2=s_M12[["coefficients"]][1,5],
-                       med=((s_M11[["coefficients"]][1,2]-s_M12[["coefficients"]][1,2])/(s_M11[["coefficients"]][1,2]-1))*100)
-  
+  result <- data.frame(protname = prot_used[i],
+                       disease='CVD',
+                       n=nrow(mydata),
+                       OR1=s_M1[["coefficients"]][1,2],
+                       OR2=s_M2[["coefficients"]][1,2],
+                       pval1=s_M1[["coefficients"]][1,5],
+                       pval2=s_M2[["coefficients"]][1,5],
+                       med=((s_M1[["coefficients"]][1,2]-s_M2[["coefficients"]][1,2])/(s_M1[["coefficients"]][1,2]-1))*100)
+
   result
 }
 
-save(Result_CVD_med1, file='Result_prot_CVD_LOmed_M1.RData')
+write.csv(Result_CVD_cmed2, file='Result_PERM_CVD_M2_v2.csv', row.names = F)
