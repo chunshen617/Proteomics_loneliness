@@ -2,11 +2,10 @@ library(data.table)
 library(RNOmni)
 
 ##Load data
-data_prot <- fread('olink_ins0_cov.csv',data.table = F) #plasma protein data with covariates
+data_prot <- fread('protein_UKB.csv',data.table = F)
 #MR significant proteins
-mr_toProt <- fread('Result_MR_toProt_ME.csv')
-fdrsig_mr_ivw <- mr_toProt[mr_toProt$pfdr_com<0.05,] #9 protein and protein modules
-prot_use <- fdrsig_mr_ivw$outcome[-9]
+sig_toprot <- fread('Result_IVW_sig_toProt.csv')
+prot_use <- sig_toprot$outcome
 data_prot_used <- data_prot[,'ID',prot_used,'Batch','age','sex','site','timeGap',
                                'eth2','edu_4c','smokeNow','alc_2c','bmi','inc_2c',
                                paste0('PC',1:20)]
