@@ -14,6 +14,8 @@ These codes were used in the paper "Shen et al. Plasma proteomic signatures of s
    (1) GSMR analysis: S4_1_GSMR.R
    (2) CAUSE analysis: S4_2_CAUSE.R
    (3) colocalization analysis: S4_3_colocalization.R
-   
+7. Script for proteins relating to other blood biomarkers: S5_1_phewas_bloodmarkers.R 
+8. Script for proteins relating to brain volumes: S5_2_phewas_brainvol.R
+9. 
    
    
