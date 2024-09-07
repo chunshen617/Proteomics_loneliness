@@ -1,16 +1,36 @@
+# Sensitivity analysis: social isolation and loneliness raw scores were used and modeled with ordered logistic regression
+# Chun Shen, 2024
+
+# Load R packages
 library(parallel)
 library(data.table)
 library(RNOmni)
 library(MASS)
 library(lmtest)
 
-##Load data
-data_prot <- fread('olink_ins0_cov.csv',data.table = F) #plasma protein data with covariates
+###Load data
+# time gap: N participants * M proteins
+timeGap <- fread('olink_timeGap.csv')
+colnames(timeGap)[1] <- 'ID'
+#protein data and other covariates
+data_prot <- fread('protein_UKB.csv',data.table = F)
 protName <- colnames(data_prot)[2:2921]
 protName2 <- chartr('-','_',protName)
+colnames(data_prot)[2:2921] <- protName2
+#covariates as factor
+data_prot$SI <- as.factor(data_prot$SI) # 4 levels
+data_prot$LO <- as.factor(data_prot$LO) # 3 levels
+data_prot$sex <- as.factor(data_prot$sex) # Binary
+data_prot$site <- as.factor(data_prot$site) # Binary
+data_prot$Batch <- as.factor(data_prot$Batch) # 22 levels
+data_prot$eth2 <- as.factor(data_prot$eth2) # 5 levels
+data_prot$edu_4c <- as.factor(data_prot$edu_4c) # 4 levels
+data_prot$inc_2c <- as.factor(data_prot$inc_2c) # Binary
+data_prot$smokeNow <- as.factor(data_prot$smokeNow) # Binary
+data_prot$alc_2c <- as.factor(data_prot$alc_2c) # Binary
 
-# Full model:  age, sex, site, batch, time gap, 20 PC, ethnicity, education level, 
-#household income, smoking, alcohol consumption, BMI
+# Full model, controlling for age, sex, site, batch, time gap, 20 PC, ethnicity, education level, 
+#household income, smoking, alcohol consumption, and BMI
 model2order <- function(data,protName,phenotype){
   data[,protName] <- RankNorm(data[,protName])
 
@@ -59,7 +79,7 @@ SI.model2 <- mclapply(1:length(protName2), function(i) {
 }, mc.cores = 10)
 
 SI_model2 <- do.call(rbind,SI.model2)
-write.csv(SI_model2,file = 'Result_SI_protein_order_M2.csv',row.names = F)
+write.csv(SI_model2, file = 'Result_SI_protein_order_M2.csv',row.names = F)
 
 # LO, full model
 LO.model2 <- mclapply(1:length(protName2), function(i) {
@@ -75,4 +95,4 @@ LO.model2 <- mclapply(1:length(protName2), function(i) {
 }, mc.cores = 10)
 
 LO_model2 <- do.call(rbind,LO.model2)
-write.csv(LO_model2,file = 'Result_LO_protein_order_M2.csv',row.names = F)
+write.csv(LO_model2, file = 'Result_LO_protein_order_M2.csv',row.names = F)
