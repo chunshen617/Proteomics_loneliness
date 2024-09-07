@@ -17,9 +17,8 @@ write.csv(processed.nmr,file='nmr_processed.csv',row.names = F)
 #load protein data
 data_prot <- fread('protein_UKB.csv',data.table = F)
 #MR significant proteins
-mr_toProt <- fread('Result_MR_toProt_ME.csv')
-fdrsig_mr_ivw <- mr_toProt[mr_toProt$pfdr_com<0.05,] #9 protein and protein modules
-prot_use <- fdrsig_mr_ivw$outcome
+sig_toprot <- fread('Result_IVW_sig_toProt.csv')
+prot_use <- sig_toprot$outcome
 #extract protein data
 data_prot_use <- data_prot[,c('ID',prot_used,'Batch','age','sex','site','timeGap',
                                'eth2','edu_4c','smokeNow','alc_2c','bmi','inc_2c',
@@ -33,7 +32,7 @@ var_bld <- colnames(dat_prot_bld)[-1]
 result <- vector(mode = 'list',length = length(prot_use))
 names(result) <- prot_use
 
-for (i in 1:length(prot_use)){#####
+for (i in 1:length(prot_use)){
   print(i)
   
   rr <- data.frame(matrix(nrow=length(var_bld),ncol=3))
