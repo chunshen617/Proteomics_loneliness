@@ -1,7 +1,11 @@
+# Functional enrichment analysis
+# Chun Shen, 2024
+
+# Load R packages
 library(gprofiler2)
 library(data.table)
 
-##Model 2 result
+# Read PWAS results
 Result_SI_m2 <- fread('Result_SI_protein_assoc_M2.csv',data.table = F)
 Result_LO_m2 <- fread('Result_LO_protein_assoc_M2.csv',data.table = F)
 
