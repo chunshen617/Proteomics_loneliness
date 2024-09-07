@@ -1,10 +1,14 @@
-#Two-sample MR, using loneliness to proteins as an example
+# Two-sample MR analysis, using loneliness to proteins as an example
+# Chun Shen, 2024
+
+# Load R packages
 library(TwoSampleMR)
 library(data.table)
 library(ieugwasr)
 library(foreach)
 library(doParallel)
 
+# protein GWAS folder
 gwas_path <- '/home1/prot_GCTA_result/'
 
 #GWAS summary statistics of loneliness (calculated by PLINK2)
@@ -21,7 +25,7 @@ LO_gwas_sig$A2 <- ifelse(LO_gwas_sig$A1==LO_gwas_sig$REF,'ALT','REF')
 LO_gwas_sig$noneffect[LO_gwas_sig$A2=='ALT'] <- LO_gwas_sig$ALT[LO_gwas_sig$A2=='ALT']
 LO_gwas_sig$noneffect[LO_gwas_sig$A2=='REF'] <- LO_gwas_sig$REF[LO_gwas_sig$A2=='REF']
 
-#format
+#formatting
 LO_exp_data <- format_data(LO_gwas_sig, type = "exposure",
                            phenotype_col = "Phenotype",
                            snp_col = "SNP",
@@ -34,13 +38,13 @@ LO_exp_data <- format_data(LO_gwas_sig, type = "exposure",
                            chr_col = "CHR",
                            pos_col = "POS")
 
-#clump
+#clumping
 LO_snp_clump <- ld_clump_local(data.frame(rsid = LO_exp_data$SNP,pval = LO_exp_data$pval.exposure),
                              clump_kb=10000,
                              clump_r2=0.001,
                              clump_p = 1,
-                             bfile = '/home1/shenchun/DATA/Genome1000_EUR/EUR',
-                             plink_bin = '/home1/shenchun/software/plink_1.9/plink')
+                             bfile = '/Genome1000_EUR/EUR',
+                             plink_bin = '/software/plink_1.9/plink')
 
 LO_exp_clump <- LO_exp_data[which(LO_exp_data$SNP %in% LO_snp_clump$rsid),]
 
@@ -62,7 +66,7 @@ multiResultClass <- function(prot_mr_res=NULL,prot_het_res=NULL,prot_ple_res=NUL
   return(me)
 }
 
-registerDoParallel(20)
+registerDoParallel(10)
 
 result_mr_all <- foreach(i=1:length(protName)) %dopar% {
 
