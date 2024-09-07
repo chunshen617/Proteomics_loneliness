@@ -11,9 +11,9 @@ These codes were used in the paper "Shen et al. Plasma proteomic signatures of s
 4. Script for functional enrichment analysis: S3_enrichment.R
 5. Script for two-sample MR: S4_2sampleMR.R
 6. Script for senticitivity analyses of MR:
-   (1) GSMR analysis:
-   (2) CAUSE analysis:
-   (3) colocalization analysis: 
+   (1) GSMR analysis: S4_1_GSMR.R
+   (2) CAUSE analysis: S4_2_CAUSE.R
+   (3) colocalization analysis: S4_3_colocalization.R
    
    
    
