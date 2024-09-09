@@ -12,7 +12,7 @@ data_prot <- fread('protein_UKB.csv',data.table = F)
 #missing value
 smiss <- apply(data_prot[,2:2921],1,function(x) length(which(is.na(x)==TRUE))/ncol(data_prot[,2:2921]))
 #participants with missing protein data exceeding 50% were excluded
-data_prot2 <- data_prot[smiss<0.5,pmiss<0.5]#sample N=46850
+data_prot2 <- data_prot[smiss<0.5,]#sample N=46850
 
 #permutation
 prot_dat <- as.matrix(t(data_prot2[,2:2921]))
