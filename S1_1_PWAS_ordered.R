@@ -21,8 +21,8 @@ colnames(data_prot)[2:2921] <- protName2
 data_prot$SI <- as.factor(data_prot$SI) # 4 levels
 data_prot$LO <- as.factor(data_prot$LO) # 3 levels
 data_prot$sex <- as.factor(data_prot$sex) # Binary
-data_prot$site <- as.factor(data_prot$site) # Binary
-data_prot$Batch <- as.factor(data_prot$Batch) # 22 levels
+data_prot$site <- as.factor(data_prot$site) # 22 levels
+data_prot$Batch <- as.factor(data_prot$Batch) # 8 levels
 data_prot$eth2 <- as.factor(data_prot$eth2) # 5 levels
 data_prot$edu_4c <- as.factor(data_prot$edu_4c) # 4 levels
 data_prot$inc_2c <- as.factor(data_prot$inc_2c) # Binary
